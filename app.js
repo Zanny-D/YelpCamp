@@ -19,9 +19,8 @@ const mongoSanitize = require('express-mongo-sanitize')
 const userRoutes = require('./routes/users')
 const campgroundRoutes = require('./routes/campgrounds')
 const reviewRoutes = require('./routes/reviews')
-const dbUrl = process.env.DB_URL;
-// const dbUrl = 'mongodb://127.0.0.1:27017/yelp-camp'
-
+const dbUrl = process.env.DB_URL; // <-- Comment this out for local development
+// const dbUrl = 'mongodb://127.0.0.1:27017/yelp-camp' // <-- Uncomment this for local development
 
 mongoose.connect(dbUrl, {
     useNewUrlParser: true,
@@ -41,7 +40,6 @@ const app = express();
 app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')))
@@ -61,7 +59,7 @@ const store = MongoStore.create({
 
 store.on('error', function (e) {
     console.log('SESSION STORE ERROR', e)
-})
+});
 
 const sessionConfig = {
     store,
@@ -80,7 +78,6 @@ const sessionConfig = {
 app.use(session(sessionConfig)); // Must be before passport.session()
 app.use(flash());
 app.use(helmet());// app.use(helmet({ contentSecurityPolicy: false }));
-
 const scriptSrcUrls = [
     "https://stackpath.bootstrapcdn.com/",
     "https://api.tiles.mapbox.com/",
@@ -125,13 +122,9 @@ app.use(
     })
 );
 
-
-
-
 app.use(passport.initialize())
 app.use(passport.session())
 passport.use(new LocalStrategy(User.authenticate()))
-
 passport.serializeUser(User.serializeUser())        // Tells passport how to store and
 passport.deserializeUser(User.deserializeUser())    // unstore users in the session
 
@@ -142,8 +135,6 @@ app.use((req, res, next) => {
     res.locals.error = req.flash('error');
     next();
 })
-
-
 app.use('/', userRoutes)
 app.use('/campgrounds', campgroundRoutes)
 app.use('/campgrounds/:id/reviews', reviewRoutes)
@@ -151,7 +142,6 @@ app.use('/campgrounds/:id/reviews', reviewRoutes)
 app.get('/', (req, res) => {
     res.render('home')
 })
-
 
 app.all('*', (req, res, next) => {// res.send("404!!!!")
     next(new ExpressError('Page Not Found', 404))
